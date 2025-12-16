@@ -1,9 +1,9 @@
 /**
  * @file config.h
- * @brief Configuration principale pour le test de stress SD sur HTCC-AB01
+ * @brief Configuration principale pour le test de stress SD sur HTCC-AB02
  *
  * Ce fichier contient toutes les configurations matérielles et logicielles
- * pour le test intensif de carte SD sur la carte CubeCell AB01.
+ * pour le test intensif de carte SD sur la carte CubeCell AB02.
  *
  * IMPORTANT: Certains paramètres peuvent être surchargés via platformio.ini
  * en utilisant les build_flags (-D PARAM=VALUE)
@@ -15,7 +15,7 @@
 #include <Arduino.h>
 
 // =============================================================================
-// CONFIGURATION MATERIELLE - HTCC-AB01 (CubeCell)
+// CONFIGURATION MATERIELLE - HTCC-AB02 (CubeCell Board Plus)
 // =============================================================================
 
 /**
@@ -25,29 +25,50 @@
  *
  * IMPORTANT: Ce pin permet de faire un vrai power-cycle de la carte SD!
  */
-#define PIN_VEXT_CTRL       GPIO6
+#define PIN_VEXT_CTRL       Vext
 
 /**
- * Pins SPI pour la carte SD (Software SPI recommandé pour éviter conflits LoRa)
- * Ces pins sont libres sur le HTCC-AB01 et peuvent être utilisés pour le SPI SD
+ * Pins SPI pour la carte SD (Software SPI utilisant SPI1)
  *
- * À CONFIRMER: Vérifier le câblage physique de votre module SD
- * Le SPI hardware est partagé avec le module LoRa SX1262 intégré
+ * HTCC-AB02 dispose de deux ports SPI:
+ *   - SPI0: Utilisé par le module LoRa SX1262 intégré (NE PAS UTILISER)
+ *   - SPI1: Disponible pour la carte SD (GPIO1/GPIO2/GPIO3)
+ *
+ * Mapping GPIO AB02 (depuis pins_arduino.h):
+ *   - GPIO1 (P6_0) = MOSI1
+ *   - GPIO2 (P6_1) = MISO1
+ *   - GPIO3 (P6_2) = SCK1/PWM1
+ *   - GPIO4 (P6_4) = PWM2 (libre)
+ *   - GPIO5 (P3_4) = libre
+ *   - GPIO6 (P3_6) = libre
+ *   - GPIO7 (P3_7) = USER_KEY/VBAT_ADC_CTL
+ *   - SDA/SCL (P0_1/P0_0) = I2C0 pour OLED
+ *   - SDA1/SCL1 (GPIO9/GPIO8) = I2C1
+ *
+ * Configuration SPI1 pour SD:
+ *   - GPIO1 = MOSI1
+ *   - GPIO2 = MISO1
+ *   - GPIO3 = SCK1
+ *   - GPIO4 = CS (libre, choisi car proche des autres pins SPI1)
  */
-#define PIN_SD_MOSI         GPIO1   // Master Out Slave In
-#define PIN_SD_MISO         GPIO2   // Master In Slave Out
-#define PIN_SD_SCK          GPIO3   // Serial Clock
-#define PIN_SD_CS           GPIO4   // Chip Select (actif LOW)
+#define PIN_SD_MOSI         GPIO1   // MOSI1 - Master Out Slave In
+#define PIN_SD_MISO         GPIO2   // MISO1 - Master In Slave Out
+#define PIN_SD_SCK          GPIO3   // SCK1  - Serial Clock
+#define PIN_SD_CS           GPIO4   // Chip Select (actif LOW) - GPIO libre
 
 /**
- * Pin LED RGB embarquée (optionnel, pour feedback visuel)
+ * Pin LED embarquée (optionnel, pour feedback visuel)
+ * Sur AB02, la LED RGB est sur GPIO13 (P0_6), contrôlée via le framework
+ * On utilise GPIO5 comme sortie LED externe si nécessaire
  */
-#define PIN_LED             GPIO5   // LED blanche sur AB01
+#define PIN_LED             GPIO5   // LED externe sur GPIO5 (P3_4)
 
 /**
  * Pin USER Button
+ * AB02: GPIO7 (P3_7) est partagé avec VBAT_ADC_CTL
+ * USER_KEY est défini comme alias dans pins_arduino.h
  */
-#define PIN_USER_BUTTON     GPIO7
+#define PIN_USER_BUTTON     USER_KEY
 
 // =============================================================================
 // CONFIGURATION SPI

@@ -1,10 +1,10 @@
-# SD Card Stress Test - HTCC-AB01 (CubeCell)
+# SD Card Stress Test - HTCC-AB02 (CubeCell Board Plus)
 
-Test intensif de carte SD avec power-cycle hardware pour la carte Heltec HTCC-AB01.
+Test intensif de carte SD avec power-cycle hardware pour la carte Heltec HTCC-AB02.
 
 ## Fonctionnalités
 
-- **Power-cycle hardware** via Vext (GPIO6) - coupe vraiment l'alimentation de la SD
+- **Power-cycle hardware** via Vext - coupe vraiment l'alimentation de la SD
 - **Deux modes de test** :
   - Mode Agressif : unmount/power-cycle/mount à chaque cycle
   - Mode Continu : fichier ouvert en permanence avec sync
@@ -15,25 +15,31 @@ Test intensif de carte SD avec power-cycle hardware pour la carte Heltec HTCC-AB
 
 ## Matériel requis
 
-- Carte Heltec HTCC-AB01 (CubeCell avec ASR6501)
+- Carte Heltec HTCC-AB02 (CubeCell Board Plus avec ASR6501)
 - Module carte SD avec interface SPI
 - Carte microSD formatée FAT32
 - Câbles de connexion
 
 ## Câblage
 
-| Signal SD | Pin AB01 | Description |
+| Signal SD | Pin AB02 | Description |
 |-----------|----------|-------------|
-| VCC       | Vext     | Alimentation 3.3V (contrôlée par GPIO6) |
+| VCC       | Vext     | Alimentation 3.3V contrôlée |
 | GND       | GND      | Masse |
-| MOSI      | GPIO1    | Master Out Slave In |
-| MISO      | GPIO2    | Master In Slave Out |
-| SCK       | GPIO3    | Clock SPI |
-| CS        | GPIO4    | Chip Select |
+| MOSI      | GPIO1    | MOSI1 (P6_0) - Master Out Slave In |
+| MISO      | GPIO2    | MISO1 (P6_1) - Master In Slave Out |
+| SCK       | GPIO3    | SCK1 (P6_2) - Clock SPI |
+| CS        | GPIO4    | Chip Select (P6_4) |
 
-**Important** : Le pin Vext est contrôlé par GPIO6 :
+**Important** : Le pin Vext contrôle l'alimentation externe :
 - `LOW` = Alimentation ON (3.3V, max 350mA)
 - `HIGH` = Alimentation OFF
+
+**Note sur les pins AB02** :
+- SDA/SCL (P0_1/P0_0) : I2C0 pour l'OLED intégré
+- GPIO13 (P0_6) : LED RGB
+- SPI0 : Réservé pour le module LoRa SX1262
+- GPIO7/USER_KEY : Bouton utilisateur
 
 ## Installation
 
@@ -60,14 +66,14 @@ pio run -t upload
 
 | Environnement | Description |
 |---------------|-------------|
-| `cubecell_board` | Configuration par défaut (4 MHz SPI, mode agressif) |
-| `cubecell_board_debug` | Debug avec 1 MHz SPI et LOG_LEVEL=4 |
-| `cubecell_board_slow_spi` | SPI lent (1 MHz) pour cartes problématiques |
-| `cubecell_board_continuous` | Mode continu (fichier reste ouvert) |
+| `cubecell_board_plus` | Configuration par défaut (4 MHz SPI, mode agressif) |
+| `cubecell_board_plus_debug` | Debug avec 1 MHz SPI et LOG_LEVEL=4 |
+| `cubecell_board_plus_slow_spi` | SPI lent (1 MHz) pour cartes problématiques |
+| `cubecell_board_plus_continuous` | Mode continu (fichier reste ouvert) |
 
 Compiler un environnement spécifique :
 ```bash
-pio run -e cubecell_board_debug -t upload
+pio run -e cubecell_board_plus_debug -t upload
 ```
 
 ## Configuration
@@ -112,7 +118,7 @@ Connectez-vous au port série (115200 baud) pour voir :
 ```
 ================================
   SD CARD STRESS TEST
-  HTCC-AB01 (CubeCell)
+  HTCC-AB02 (CubeCell)
 ================================
 
 Configuration:
@@ -148,14 +154,14 @@ Configuration:
 - [ ] Carte SD de bonne qualité (Class 10 minimum recommandé)
 - [ ] Vérifier le câblage selon le tableau ci-dessus
 - [ ] Vext connecté au VCC du module SD
-- [ ] Alimentation stable de la carte AB01
+- [ ] Alimentation stable de la carte AB02
 
 ### 2. Vérification du câblage
 
 ```
 Multimètre en mode continuité :
-- [ ] GND SD ↔ GND AB01 : OK
-- [ ] VCC SD ↔ Vext AB01 : OK (ou avec GPIO6 = LOW)
+- [ ] GND SD ↔ GND AB02 : OK
+- [ ] VCC SD ↔ Vext AB02 : OK
 - [ ] MOSI SD ↔ GPIO1 : OK
 - [ ] MISO SD ↔ GPIO2 : OK
 - [ ] SCK SD ↔ GPIO3 : OK
@@ -167,9 +173,9 @@ Multimètre en mode continuité :
 ```cpp
 // Test manuel dans le Serial Monitor :
 // Observer le multimètre sur Vext pendant ces commandes
-pinMode(GPIO6, OUTPUT);
-digitalWrite(GPIO6, LOW);   // Vext doit être à ~3.3V
-digitalWrite(GPIO6, HIGH);  // Vext doit être à ~0V
+pinMode(Vext, OUTPUT);
+digitalWrite(Vext, LOW);   // Vext doit être à ~3.3V
+digitalWrite(Vext, HIGH);  // Vext doit être à ~0V
 ```
 
 ## Tests de validation
@@ -258,7 +264,7 @@ digitalWrite(GPIO6, HIGH);  // Vext doit être à ~0V
 2. **Vérifier le format** - doit être FAT32 (pas exFAT)
 3. **Réduire la fréquence SPI** à 1 MHz ou 400 kHz
 4. **Tester avec une autre carte SD**
-5. **Vérifier que Vext est bien à 3.3V** (GPIO6 = LOW)
+5. **Vérifier que Vext est bien à 3.3V**
 
 ### Erreurs d'écriture fréquentes
 
@@ -296,8 +302,7 @@ digitalWrite(GPIO6, HIGH);  // Vext doit être à ~0V
 
 - [Heltec CubeCell Documentation](https://docs.heltec.org/en/node/asr650x/)
 - [PlatformIO CubeCell Platform](https://docs.platformio.org/en/latest/platforms/heltec-cubecell.html)
-- [SdFat Library](https://github.com/greiman/SdFat)
-- [Discussion Heltec Forum](http://community.heltec.cn/t/read-write-to-sd-card/2852/13)
+- [HTCC-AB02 Product Page](https://heltec.org/project/htcc-ab02/)
 
 ## Licence
 

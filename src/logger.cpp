@@ -218,7 +218,7 @@ void logger_print_banner(void) {
     Serial.println();
     logger_print_separator();
     Serial.println(F("  SD CARD STRESS TEST  "));
-    Serial.println(F("  HTCC-AB01 (CubeCell)  "));
+    Serial.println(F("  HTCC-AB02 (CubeCell)  "));
     logger_print_separator();
     Serial.println();
     #endif
